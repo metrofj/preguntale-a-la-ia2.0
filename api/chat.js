@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+async function handler(req, res) {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY_3;
 
   console.info("📦 API KEY detectada:", OPENAI_API_KEY ? "✅ PRESENTE" : "❌ FALTANTE");
@@ -37,11 +37,11 @@ export default async function handler(req, res) {
     });
 
     const openaiData = await openaiRes.json();
+
     if (openaiData.error) {
-  console.error("❌ ERROR DETECTADO:", openaiData.error);
-  return res.status(500).json({ error: openaiData.error.message || "Error desconocido de OpenAI" });
-
-
+      console.error("❌ ERROR DETECTADO:", openaiData.error);
+      return res.status(500).json({ error: openaiData.error.message || "Error desconocido de OpenAI" });
+    }
 
     const respuestaIA = openaiData.choices?.[0]?.message?.content?.trim();
     console.info("📨 Respuesta de OpenAI:", openaiData);
@@ -51,3 +51,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Error al contactar con OpenAI" });
   }
 }
+
+module.exports = handler;
