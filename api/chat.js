@@ -39,8 +39,8 @@ export default async function handler(req, res) {
     const openaiData = await openaiRes.json();
     if (openaiData.error) {
   console.error("❌ ERROR DETECTADO:", openaiData.error);
-  🟢 return res.status(500).json({ error: openaiData.error.message || "Error desconocido de OpenAI" });
-}
+  return res.status(500).json({ error: openaiData.error.message || "Error desconocido de OpenAI" });
+
 
 
     const respuestaIA = openaiData.choices?.[0]?.message?.content?.trim();
