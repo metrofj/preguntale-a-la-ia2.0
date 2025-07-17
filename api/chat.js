@@ -1,5 +1,11 @@
 export default async function handler(req, res) {
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY_3;
+  const apiKeys = [
+    process.env.OPENAI_API_KEY_1,
+    process.env.OPENAI_API_KEY_2,
+    process.env.OPENAI_API_KEY_3,
+  ].filter(Boolean);
+
+  const OPENAI_API_KEY = apiKeys.find(Boolean);
 
   console.info("📦 API KEY detectada:", OPENAI_API_KEY ? "✅ PRESENTE" : "❌ FALTANTE");
 
@@ -29,12 +35,10 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "Eres un asistente experto en Trabajo Social. Responde de forma clara, amable y directa. No digas que eres un modelo de lenguaje ni menciones que eres ChatGPT.",
+            content:
+              "Eres un asistente experto en Trabajo Social. Responde de forma clara, amable y directa. No digas que eres un modelo de lenguaje ni menciones que eres ChatGPT.",
           },
-          {
-            role: "user",
-            content: message,
-          },
+          { role: "user", content: message },
         ],
         temperature: 0.7,
       }),
@@ -44,13 +48,14 @@ export default async function handler(req, res) {
 
     if (openaiData.error) {
       console.error("❌ ERROR DETECTADO:", openaiData.error);
-      return res.status(500).json({ error: "Error en la respuesta de OpenAI" });
+      return res.status(500).json({ error: "La IA está ocupada o fuera de servicio por el momento. Intenta más tarde." });
     }
 
     const respuestaIA = openaiData.choices?.[0]?.message?.content?.trim();
-    console.info("📨 Respuesta de OpenAI:", openaiData);
+    console.info("📨 Respuesta de OpenAI:", respuestaIA);
 
     return res.status(200).json({ response: respuestaIA });
+
   } catch (error) {
     console.error("❌ ERROR en catch:", error);
     return res.status(500).json({ error: "Error al contactar con OpenAI" });
