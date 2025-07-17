@@ -1,40 +1,58 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pregúntale a la IA - Trabajo Social</title>
-  <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f4f4f4; }
-    h1 { color: #2c3e50; }
-    textarea, button { width: 100%; padding: 10px; margin-top: 1rem; font-size: 16px; }
-    #respuesta { margin-top: 1rem; background: #fff; padding: 1rem; border-radius: 5px; }
-  </style>
-</head>
-<body>
-  <h1>Pregúntale a la IA sobre Trabajo Social</h1>
-  <textarea id="pregunta" rows="4" placeholder="Escribe tu pregunta aquí..."></textarea>
-  <button onclick="enviarPregunta()">Enviar</button>
-  <div id="respuesta"></div>
+export default async function handler(req, res) {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY_3;
 
-  <script>
-    async function enviarPregunta() {
-      const pregunta = document.getElementById("pregunta").value;
-      const respuestaDiv = document.getElementById("respuesta");
-      respuestaDiv.innerHTML = "⏳ Pensando...";
+  console.info("📦 API KEY detectada:", OPENAI_API_KEY ? "✅ PRESENTE" : "❌ FALTANTE");
 
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: pregunta })
-        });
-        const data = await res.json();
-        respuestaDiv.innerHTML = data.result;
-      } catch (error) {
-        respuestaDiv.innerHTML = "⚠️ Error al comunicarse con la IA.";
-      }
+  if (!OPENAI_API_KEY) {
+    return res.status(500).json({ error: "Falta la clave de API de OpenAI" });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  const { message } = req.body;
+
+  if (!message || message.trim().length === 0) {
+    return res.status(400).json({ error: "Pregunta vacía" });
+  }
+
+  try {
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "Eres un asistente experto en Trabajo Social. Responde de forma clara, amable y directa. No digas que eres un modelo de lenguaje ni menciones que eres ChatGPT.",
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    const openaiData = await openaiRes.json();
+
+    if (openaiData.error) {
+      console.error("❌ ERROR DETECTADO:", openaiData.error);
+      return res.status(500).json({ error: "Error en la respuesta de OpenAI" });
     }
-  </script>
-</body>
-</html>
+
+    const respuestaIA = openaiData.choices?.[0]?.message?.content?.trim();
+    console.info("📨 Respuesta de OpenAI:", openaiData);
+
+    return res.status(200).json({ response: respuestaIA });
+  } catch (error) {
+    console.error("❌ ERROR en catch:", error);
+    return res.status(500).json({ error: "Error al contactar con OpenAI" });
+  }
+}
