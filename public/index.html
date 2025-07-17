@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pregúntale a la IA - Trabajo Social</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 2em; background: #f0f0f0; }
+    #chat-container { max-width: 700px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #messages { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px; }
+    .message { margin: 8px 0; }
+    .user { font-weight: bold; color: #3366cc; }
+    .bot { font-weight: bold; color: #009688; }
+    input, button { padding: 10px; font-size: 1em; }
+    input { width: 80%; margin-right: 5px; }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h2>Pregúntale a la IA - Trabajo Social</h2>
+    <div id="messages"></div>
+    <input type="text" id="user-input" placeholder="Escribe tu pregunta aquí..." />
+    <button onclick="enviarMensaje()">Enviar</button>
+  </div>
+
+  <script>
+    async function enviarMensaje() {
+      const input = document.getElementById("user-input");
+      const mensaje = input.value.trim();
+      if (!mensaje) return;
+
+      mostrarMensaje("Tú", mensaje);
+      input.value = "";
+
+      try {
+        const respuesta = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: mensaje }),
+        });
+
+        const data = await respuesta.json();
+        if (data.response) {
+          mostrarMensaje("IA", data.response);
+        } else {
+          mostrarMensaje("IA", "Hubo un problema con la respuesta.");
+        }
+      } catch (error) {
+        mostrarMensaje("IA", "Error de red o del servidor.");
+      }
+    }
+
+    function mostrarMensaje(remitente, texto) {
+      const divMensajes = document.getElementById("messages");
+      const nuevo = document.createElement("div");
+      nuevo.className = "message";
+      nuevo.innerHTML = `<span class="${remitente === 'Tú' ? 'user' : 'bot'}">${remitente}:</span> ${texto}`;
+      divMensajes.appendChild(nuevo);
+      divMensajes.scrollTop = divMensajes.scrollHeight;
+    }
+  </script>
+</body>
+</html>
