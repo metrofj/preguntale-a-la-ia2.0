@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pregúntale a la IA - Trabajo Social</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f4f4f4; }
+    h1 { color: #2c3e50; }
+    textarea, button { width: 100%; padding: 10px; margin-top: 1rem; font-size: 16px; }
+    #respuesta { margin-top: 1rem; background: #fff; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Pregúntale a la IA sobre Trabajo Social</h1>
+  <textarea id="pregunta" rows="4" placeholder="Escribe tu pregunta aquí..."></textarea>
+  <button onclick="enviarPregunta()">Enviar</button>
+  <div id="respuesta"></div>
+
+  <script>
+    async function enviarPregunta() {
+      const pregunta = document.getElementById("pregunta").value;
+      const respuestaDiv = document.getElementById("respuesta");
+      respuestaDiv.innerHTML = "⏳ Pensando...";
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: pregunta })
+        });
+        const data = await res.json();
+        respuestaDiv.innerHTML = data.result;
+      } catch (error) {
+        respuestaDiv.innerHTML = "⚠️ Error al comunicarse con la IA.";
+      }
+    }
+  </script>
+</body>
+</html>
